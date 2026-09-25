@@ -1,159 +1,377 @@
 "use client";
-import { motion } from "framer-motion";
-import { ArrowDown, ChevronRight, Download } from "lucide-react";
-import { person, stats } from "@/lib/data";
+import { useEffect, useRef } from 'react';
+import { motion, type Variants } from 'framer-motion';
+import { MapPin, Download, ArrowRight, ChevronDown, Briefcase } from 'lucide-react';
+import { profile, heroStats } from '@/lib/portfolio';
 
 export default function Hero() {
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const bgTextRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Subtle parallax on background watermark text
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!bgTextRef.current) return;
+      const x = (e.clientX / window.innerWidth - 0.5) * 20;
+      const y = (e.clientY / window.innerHeight - 0.5) * 10;
+      bgTextRef.current.style.transform = `translate(${x}px, ${y}px)`;
+    };
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  const containerVariants: Variants = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
+  };
+
+  const scrollTo = (id: string) => {
+    const el = document.querySelector(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center pt-16 overflow-hidden">
-      {/* Background layers */}
-      <div className="absolute inset-0 grid-bg opacity-60" />
-      <div className="absolute inset-0 bg-gradient-to-br from-[#04091a] via-[#060d1f]/90 to-[#04091a]" />
-
-      {/* Glow orbs */}
-      <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-[#0078d4]/6 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] rounded-full bg-[#742774]/5 blur-[120px] pointer-events-none" />
-
-      {/* Top decorative line */}
-      <div className="absolute top-16 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#0078d4]/20 to-transparent" />
-
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8 py-24 w-full">
-        <div className="grid lg:grid-cols-[1fr_auto] gap-16 items-center">
-          {/* Left */}
-          <div className="max-w-3xl">
-            {/* Available badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0078d4]/10 border border-[#0078d4]/25 text-[#5ea6f5] text-xs font-semibold tracking-wide mb-8"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Available for Opportunities
-            </motion.div>
-
-            {/* Main headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.6 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-[1.08] tracking-tight text-white mb-6"
-            >
-              Microsoft Power Apps &amp;{" "}
-              <span className="g-text-blue">Dynamics 365 CE</span>{" "}
-              Developer
-            </motion.h1>
-
-            {/* Intro */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.75 }}
-              className="text-[var(--text-muted)] text-lg leading-relaxed max-w-2xl mb-10"
-            >
-              I&apos;m a Microsoft Power Apps and Dynamics 365 CE Developer with{" "}
-              <span className="text-white font-medium">4+ years of experience</span> building and
-              supporting enterprise CRM solutions at{" "}
-              <span className="text-[#5ea6f5] font-medium">Starlite Infotech</span>.
-            </motion.p>
-
-            {/* Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.9 }}
-              className="flex flex-wrap gap-3 mb-14"
-            >
-              <button
-                onClick={() => scrollTo("projects")}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#0078d4] hover:bg-[#106ebe] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-xl hover:shadow-[#0078d4]/30 hover:-translate-y-0.5 text-sm"
-              >
-                View Projects <ChevronRight size={14} />
-              </button>
-              <button
-                onClick={() => scrollTo("experience")}
-                className="inline-flex items-center gap-2 px-6 py-3 border border-white/14 hover:border-[#0078d4]/40 text-white/75 hover:text-white font-semibold rounded-xl transition-all duration-200 hover:bg-white/4 text-sm"
-              >
-                View Experience
-              </button>
-              <a
-                href="/resume/Salma_Shaik_Resume.docx"
-                download="Salma_Shaik_Resume.docx"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-[#742774]/30 hover:border-[#742774]/60 text-[#c084fc]/80 hover:text-[#c084fc] font-semibold rounded-xl transition-all duration-200 hover:bg-[#742774]/8 text-sm"
-              >
-                <Download size={14} /> Download Resume
-              </a>
-            </motion.div>
-
-            {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.05 }}
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-            >
-              {stats.map((s, i) => (
-                <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0, scale: 0.92 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.1 + i * 0.08 }}
-                  className="glass rounded-xl p-4 stat-card"
-                >
-                  <div className="text-2xl font-bold text-white mb-0.5 leading-none">{s.value}</div>
-                  <div className="text-xs font-semibold text-[#5ea6f5] leading-tight mb-0.5">{s.label}</div>
-                  <div className="text-[10px] text-white/30 leading-tight">{s.sublabel}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Right: tech stack visual */}
-          <motion.div
-            initial={{ opacity: 0, x: 32 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="hidden xl:flex flex-col gap-3 w-56"
-          >
-            {[
-              { label: "Dynamics 365 CE", color: "#0078d4" },
-              { label: "Power Apps", color: "#742774" },
-              { label: "Dataverse", color: "#742774" },
-              { label: "Power Automate", color: "#0066b8" },
-              { label: "C#.NET / JavaScript", color: "#7c3aed" },
-              { label: "WebAPI / FetchXML", color: "#0ea5e9" },
-            ].map((item, i) => (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.9 + i * 0.08 }}
-                className="glass rounded-xl px-4 py-3 flex items-center gap-3 border-l-2 hover:bg-white/4 transition-colors duration-200"
-                style={{ borderLeftColor: item.color }}
-              >
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: item.color }} />
-                <span className="text-white/70 text-xs font-medium">{item.label}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* Scroll cue */}
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          onClick={() => scrollTo("about")}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/25 hover:text-white/50 transition-colors"
-        >
-          <span className="text-[10px] tracking-[0.2em] uppercase font-medium">Scroll</span>
-          <motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 1.8, repeat: Infinity }}>
-            <ArrowDown size={14} />
-          </motion.div>
-        </motion.button>
+    <section
+      id="hero"
+      aria-label="Hero section"
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        alignItems: 'center',
+        paddingTop: '120px',
+        paddingBottom: '5rem',
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'linear-gradient(160deg, #F4F5F7 0%, #EBF0F7 100%)',
+      }}
+    >
+      {/* Background decorative watermark typography */}
+      <div
+        ref={bgTextRef}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: '-5%',
+          transform: 'translateY(-50%)',
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontWeight: 900,
+          lineHeight: 0.85,
+          color: 'rgba(0,120,212,0.035)',
+          fontSize: 'clamp(7rem, 14vw, 13rem)',
+          letterSpacing: '-0.04em',
+          userSelect: 'none',
+          pointerEvents: 'none',
+          textAlign: 'right',
+          transition: 'transform 0.3s ease',
+          zIndex: 0,
+        }}
+        aria-hidden="true"
+      >
+        DYNAMICS<br />365<br />POWER APPS
       </div>
+
+      {/* Subtle grid pattern */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'linear-gradient(rgba(26,26,46,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(26,26,46,0.025) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Left accent vertical gradient bar */}
+      <motion.div
+        initial={{ scaleY: 0 }}
+        animate={{ scaleY: 1 }}
+        transition={{ duration: 1, delay: 0.4, ease: 'easeOut' }}
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: '20%',
+          width: '3px',
+          height: '35%',
+          background: 'linear-gradient(180deg, transparent, #0078D4, transparent)',
+          transformOrigin: 'top',
+          zIndex: 1,
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Main content container */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '900px',
+          margin: '0 auto',
+          padding: '0 2rem',
+          width: '100%',
+        }}
+        className="hero-content"
+      >
+        {/* Availability Badge */}
+        <motion.div variants={itemVariants}>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: 'rgba(0,120,212,0.08)',
+              border: '1px solid rgba(0,120,212,0.2)',
+              color: '#0078D4',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '999px',
+              fontSize: '0.72rem',
+              fontWeight: 600,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              marginBottom: '1.5rem',
+            }}
+          >
+            <span
+              style={{
+                width: '6px',
+                height: '6px',
+                background: '#16A34A',
+                borderRadius: '50%',
+                boxShadow: '0 0 8px rgba(22,163,74,0.6)',
+              }}
+            />
+            Available for enterprise opportunities
+          </span>
+        </motion.div>
+
+        {/* Name Heading */}
+        <motion.h1
+          variants={itemVariants}
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontWeight: 800,
+            lineHeight: 1.05,
+            letterSpacing: '-0.03em',
+            color: '#1A1A2E',
+            marginBottom: '0.5rem',
+          }}
+        >
+          <span
+            style={{
+              display: 'block',
+              fontSize: 'clamp(3rem, 7vw, 5.2rem)',
+            }}
+          >
+            {profile.name}
+          </span>
+        </motion.h1>
+
+        {/* Role Subtitle */}
+        <motion.h2
+          variants={itemVariants}
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontWeight: 700,
+            fontSize: 'clamp(1.2rem, 2.5vw, 1.65rem)',
+            color: '#0078D4',
+            letterSpacing: '0.01em',
+            marginBottom: '1.5rem',
+            lineHeight: 1.3,
+          }}
+        >
+          Microsoft Power Apps &amp;<br />Dynamics 365 CE Developer
+        </motion.h2>
+
+        {/* First Person Tagline */}
+        <motion.p
+          variants={itemVariants}
+          style={{
+            fontSize: 'clamp(1.05rem, 1.8vw, 1.25rem)',
+            color: '#1A1A2E',
+            fontWeight: 500,
+            lineHeight: 1.6,
+            maxWidth: '680px',
+            marginBottom: '1rem',
+          }}
+        >
+          I&apos;m a Microsoft Power Apps and Dynamics 365 CE Developer with <strong style={{ color: '#0078D4' }}>4+ years of experience</strong> building and supporting enterprise CRM solutions.
+        </motion.p>
+
+        {/* Sub Copy */}
+        <motion.p
+          variants={itemVariants}
+          style={{
+            fontSize: '0.92rem',
+            color: '#5C5C7A',
+            lineHeight: 1.7,
+            maxWidth: '640px',
+            marginBottom: '2.5rem',
+          }}
+        >
+          At <strong>Starlite Infotech</strong>, I specialize in Dataverse modeling, C#.NET plugins, custom workflow activities, JavaScript form scripts, Business Process Flows, and Power Automate workflows for global enterprises.
+        </motion.p>
+
+        {/* Stats Grid */}
+        <motion.div
+          variants={itemVariants}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: '1.5rem',
+            marginBottom: '2.5rem',
+            padding: '1.25rem 1.5rem',
+            background: 'rgba(255,255,255,0.7)',
+            borderRadius: '16px',
+            border: '1px solid rgba(26,26,46,0.06)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          {heroStats.map((stat) => (
+            <div key={stat.label}>
+              <div
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: '2.1rem',
+                  fontWeight: 800,
+                  color: '#0078D4',
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1,
+                }}
+              >
+                {stat.value}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#1A1A2E', fontWeight: 700, marginTop: '0.3rem' }}>
+                {stat.label}
+              </div>
+              <div style={{ fontSize: '0.68rem', color: '#9B9BB4', fontWeight: 500, marginTop: '0.1rem' }}>
+                {stat.sublabel}
+              </div>
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Location Info */}
+        <motion.div
+          variants={itemVariants}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            color: '#5C5C7A',
+            fontSize: '0.88rem',
+            marginBottom: '2.5rem',
+          }}
+        >
+          <MapPin size={15} style={{ color: '#0078D4' }} />
+          <span>{profile.location}</span>
+          <span style={{ color: '#9B9BB4', margin: '0 0.4rem' }}>•</span>
+          <Briefcase size={14} style={{ color: '#0078D4' }} />
+          <span>{profile.company}</span>
+        </motion.div>
+
+        {/* Hero CTAs */}
+        <motion.div
+          variants={itemVariants}
+          style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}
+        >
+          <button
+            onClick={() => scrollTo('#projects')}
+            style={primaryBtn}
+          >
+            View Projects <ArrowRight size={16} />
+          </button>
+          <button
+            onClick={() => scrollTo('#experience')}
+            style={outlineBtn}
+          >
+            View Experience
+          </button>
+          <a
+            href={profile.resumeDocx}
+            download="Salma_Shaik_Resume.docx"
+            aria-label="Download Salma Shaik's resume"
+            style={{ ...outlineBtn, gap: '0.4rem' }}
+          >
+            <Download size={15} /> Download Resume
+          </a>
+        </motion.div>
+      </motion.div>
+
+      {/* Scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.8 }}
+        style={{
+          position: 'absolute',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.4rem',
+          color: '#9B9BB4',
+          zIndex: 2,
+          cursor: 'pointer',
+        }}
+        onClick={() => scrollTo('#about')}
+        aria-hidden="true"
+      >
+        <span style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+          Scroll
+        </span>
+        <motion.div
+          animate={{ y: [0, 6, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+        >
+          <ChevronDown size={18} />
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
+
+const primaryBtn: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.85rem 1.75rem',
+  background: '#0078D4',
+  color: 'white',
+  borderRadius: '999px',
+  fontWeight: 600,
+  fontSize: '0.9rem',
+  textDecoration: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  letterSpacing: '0.01em',
+  boxShadow: '0 4px 14px rgba(0,120,212,0.25)',
+};
+
+const outlineBtn: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.85rem 1.75rem',
+  background: 'rgba(255,255,255,0.85)',
+  color: '#1A1A2E',
+  borderRadius: '999px',
+  fontWeight: 600,
+  fontSize: '0.9rem',
+  textDecoration: 'none',
+  border: '1px solid rgba(26,26,46,0.12)',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  backdropFilter: 'blur(8px)',
+};

@@ -1,91 +1,246 @@
 "use client";
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import { projects } from "@/lib/data";
-import { CheckCircle2, ChevronRight } from "lucide-react";
+import { useState, useRef } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { projects } from '@/lib/portfolio';
 
-const fadeUp = { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } };
+function ArchitectureDiagram({ modules, color }: { modules: string[]; color: string }) {
+  return (
+    <div
+      style={{
+        background: `${color}08`,
+        borderRadius: '16px',
+        border: `1px solid ${color}20`,
+        padding: '1.5rem',
+        marginBottom: '1.5rem',
+      }}
+      role="img"
+      aria-label="Dataverse module architecture diagram"
+    >
+      <p style={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: color, marginBottom: '1rem' }}>
+        DATAVERSE ENTITIES &amp; MODULES
+      </p>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.5rem',
+        }}
+      >
+        {modules.map((mod) => (
+          <div
+            key={mod}
+            style={{
+              background: '#FFFFFF',
+              border: `1px solid ${color}25`,
+              borderRadius: '8px',
+              padding: '0.4rem 0.85rem',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              color: '#1A1A2E',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              boxShadow: '0 1px 4px rgba(26,26,46,0.04)',
+            }}
+          >
+            <span
+              style={{ width: '5px', height: '5px', borderRadius: '50%', background: color }}
+              aria-hidden="true"
+            />
+            <span>{mod}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-type Project = (typeof projects)[number];
+function TechStackDisplay({ techStack }: { techStack: Record<string, string[] | undefined> }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      {Object.entries(techStack).map(([layer, items]) => (
+        <div key={layer}>
+          <p style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#9B9BB4', marginBottom: '0.4rem' }}>
+            {layer}
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+            {items && items.map((item) => (
+              <span
+                key={item}
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  color: '#5C5C7A',
+                  background: '#F4F5F7',
+                  padding: '0.25rem 0.65rem',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(26,26,46,0.08)',
+                }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-function ProjectCard({ project }: { project: Project }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
+function ProjectCard({ project, index }: { project: typeof projects[number]; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-5% 0px' });
 
   return (
     <motion.article
       ref={ref}
-      initial={{ opacity: 0, y: 36 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.65 }}
-      className="glass rounded-2xl overflow-hidden border border-white/6 hover:border-white/12 transition-colors duration-300 card-hover"
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.12, ease: "easeOut" }}
+      style={{
+        background: '#FFFFFF',
+        borderRadius: '20px',
+        overflow: 'hidden',
+        border: '1px solid rgba(26,26,46,0.07)',
+        boxShadow: '0 4px 20px rgba(26,26,46,0.07)',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      {/* Top accent */}
-      <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${project.color}, transparent)` }} />
+      {/* Card Header Strip */}
+      <div
+        style={{
+          height: '4px',
+          background: `linear-gradient(90deg, ${project.color}, ${project.color}66)`,
+        }}
+        aria-hidden="true"
+      />
 
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
-          <div className="flex-1">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="badge" style={{ background: `${project.color}18`, border: `1px solid ${project.color}30`, color: project.color }}>
-                {project.index}
-              </span>
-              <span className="badge" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(232,237,245,0.45)" }}>
-                {project.domain}
-              </span>
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-1">{project.title}</h3>
-            <p className="text-white/40 text-sm font-medium mb-1">{project.subtitle}</p>
-            <p className="text-white/30 text-xs">Client: <span className="text-white/50 font-medium">{project.client}</span> · {project.role}</p>
-          </div>
-
-          {/* Impact metric */}
-          <div className="shrink-0 text-center px-7 py-5 rounded-xl" style={{ background: `${project.color}10`, border: `1px solid ${project.color}25` }}>
-            <div className="text-3xl font-bold mb-1" style={{ color: project.color }}>{project.impact.value}</div>
-            <div className="text-white/45 text-xs max-w-[140px] leading-tight">{project.impact.label}</div>
-          </div>
+      <div style={{ padding: '2rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {/* Type Badge + Numeric Watermark */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <span
+            style={{
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: project.color,
+              background: `${project.color}12`,
+              padding: '0.25rem 0.75rem',
+              borderRadius: '999px',
+            }}
+          >
+            {project.type}
+          </span>
+          <span
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: '2rem',
+              fontWeight: 800,
+              color: 'rgba(26,26,46,0.07)',
+              letterSpacing: '-0.03em',
+            }}
+            aria-hidden="true"
+          >
+            {String(index + 1).padStart(2, '0')}
+          </span>
         </div>
 
-        {/* Description */}
-        <p className="text-white/55 text-sm leading-relaxed mb-6">{project.description}</p>
+        <h3
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: '1.35rem',
+            fontWeight: 700,
+            color: '#1A1A2E',
+            letterSpacing: '-0.02em',
+            marginBottom: '0.35rem',
+          }}
+        >
+          {project.title}
+        </h3>
+        <p style={{ fontSize: '0.82rem', color: project.color, marginBottom: '0.85rem', fontWeight: 600 }}>
+          {project.company} · {project.role}
+        </p>
 
-        {/* Flow */}
-        <div className="mb-6">
-          <div className="text-[10px] text-white/25 uppercase tracking-[0.18em] font-semibold mb-3">Process Flow</div>
-          <div className="flex flex-wrap items-center gap-2">
-            {project.flow.map((step, i) => (
-              <div key={step} className="flex items-center gap-2">
-                <div className="text-xs font-medium px-3 py-1.5 rounded-lg" style={{ background: `${project.color}12`, border: `1px solid ${project.color}25`, color: `${project.color}` }}>
-                  {step}
-                </div>
-                {i < project.flow.length - 1 && <ChevronRight size={12} className="text-white/20" />}
-              </div>
-            ))}
-          </div>
+        <p style={{ fontSize: '0.9rem', color: '#5C5C7A', lineHeight: 1.65, marginBottom: '1.25rem' }}>
+          {project.description}
+        </p>
+
+        {/* Impact callout */}
+        <div
+          style={{
+            background: `${project.color}08`,
+            borderLeft: `3px solid ${project.color}`,
+            borderRadius: '0 8px 8px 0',
+            padding: '0.6rem 0.85rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <p style={{ fontSize: '0.78rem', color: '#1A1A2E', fontWeight: 600 }}>
+            Impact: <span style={{ color: project.color }}>{project.impact}</span>
+          </p>
         </div>
 
-        {/* Tech stack */}
-        <div className="mb-6">
-          <div className="text-[10px] text-white/25 uppercase tracking-[0.18em] font-semibold mb-3">Technologies</div>
-          <div className="flex flex-wrap gap-1.5">
-            {project.tech.map((t) => (
-              <span key={t} className="text-xs px-2.5 py-1 rounded-md bg-white/4 border border-white/7 text-white/50">{t}</span>
-            ))}
-          </div>
-        </div>
+        {/* Modules Diagram */}
+        {project.modules && <ArchitectureDiagram modules={project.modules} color={project.color} />}
 
-        {/* Key contributions */}
-        <div>
-          <div className="text-[10px] text-white/25 uppercase tracking-[0.18em] font-semibold mb-3">Key Contributions</div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {project.highlights.map((h, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs text-white/55 leading-snug">
-                <CheckCircle2 size={12} className="mt-0.5 shrink-0" style={{ color: project.color }} />
-                {h}
-              </div>
-            ))}
-          </div>
+        {/* Expand/Collapse Tech Stack */}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: project.color,
+            fontFamily: 'inherit',
+            fontSize: '0.8rem',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+            padding: '0',
+            marginBottom: expanded ? '1rem' : '0',
+          }}
+        >
+          <span>{expanded ? '− Hide ' : '+ View '}Detailed Tech Stack</span>
+        </button>
+
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <TechStackDisplay techStack={project.techStack} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tech Pills at bottom */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginTop: 'auto', borderTop: '1px solid rgba(26,26,46,0.05)', paddingTop: '1.25rem' }}>
+          {project.tech.map((t) => (
+            <span
+              key={t}
+              style={{
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#5C5C7A',
+                background: '#F4F5F7',
+                padding: '0.2rem 0.6rem',
+                borderRadius: '999px',
+                border: '1px solid rgba(26,26,46,0.07)',
+              }}
+            >
+              {t}
+            </span>
+          ))}
         </div>
       </div>
     </motion.article>
@@ -93,29 +248,87 @@ function ProjectCard({ project }: { project: Project }) {
 }
 
 export default function Projects() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const ref = useRef<HTMLElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-5% 0px' });
 
   return (
-    <section id="projects" className="py-28 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#060d1f]/40 to-transparent" />
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-
-        <motion.div ref={ref} variants={fadeUp} initial="hidden" animate={inView ? "visible" : "hidden"} transition={{ duration: 0.5 }} className="section-label justify-center mb-12">
-          Projects
+    <section
+      id="projects"
+      ref={ref}
+      aria-labelledby="projects-heading"
+      style={{
+        padding: '7rem 0',
+        background: '#FFFFFF',
+      }}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          style={{ marginBottom: '1rem' }}
+        >
+          <span
+            style={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: '#0078D4',
+            }}
+          >
+            03 / PROJECTS
+          </span>
         </motion.div>
 
-        <motion.div variants={fadeUp} initial="hidden" animate={inView ? "visible" : "hidden"} transition={{ duration: 0.6, delay: 0.1 }} className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white">Enterprise Project Experience</h2>
-          <p className="text-white/45 mt-3 max-w-lg mx-auto text-sm">Production CRM implementations delivered at Starlite Infotech.</p>
-        </motion.div>
+        <motion.h2
+          id="projects-heading"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)',
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: '#1A1A2E',
+            marginBottom: '0.75rem',
+            lineHeight: 1.15,
+          }}
+        >
+          Enterprise CRM projects delivered
+        </motion.h2>
 
-        <div className="flex flex-col gap-8">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          style={{ fontSize: '1rem', color: '#9B9BB4', marginBottom: '3.5rem', maxWidth: '560px' }}
+        >
+          Production solutions built on Microsoft Dynamics 365 CE, Dataverse, and Power Automate.
+        </motion.p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+            gap: '2rem',
+          }}
+          className="projects-grid"
+        >
+          {projects.map((project, i) => (
+            <ProjectCard key={project.id} project={project} index={i} />
           ))}
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .projects-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }

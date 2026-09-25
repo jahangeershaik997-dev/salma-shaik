@@ -1,144 +1,485 @@
 "use client";
-import { motion, useInView } from "framer-motion";
-import { useRef, useState } from "react";
-import { Send, Mail, Phone, MapPin, MessageCircle } from "lucide-react";
-import { person } from "@/lib/data";
+import { useState, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { WhatsAppIcon } from './Icons';
+import { profile } from '@/lib/portfolio';
+
+interface FormState {
+  firstName: string;
+  lastName: string;
+  email: string;
+  message: string;
+}
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  message?: string;
+}
+
+function validate(form: FormState): FormErrors {
+  const errors: FormErrors = {};
+  if (!form.firstName.trim()) errors.firstName = 'First name is required.';
+  if (!form.lastName.trim()) errors.lastName = 'Last name is required.';
+  if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    errors.email = 'A valid email address is required.';
+  if (!form.message.trim())
+    errors.message = 'Message is required.';
+  return errors;
+}
 
 export default function Contact() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const ref = useRef<HTMLElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-5% 0px' });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const [form, setForm] = useState<FormState>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    message: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [touched, setTouched] = useState<Partial<Record<keyof FormState, boolean>>>({});
+
+  const handleChange = (field: keyof FormState, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (touched[field]) {
+      const newErrors = validate({ ...form, [field]: value });
+      setErrors((prev) => ({ ...prev, [field]: newErrors[field] }));
+    }
   };
 
-  const handleWhatsApp = (e: React.FormEvent) => {
+  const handleBlur = (field: keyof FormState) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const newErrors = validate(form);
+    setErrors((prev) => ({ ...prev, [field]: newErrors[field] }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.message) return;
-    const text = `Hi Salma, I'm ${form.name}${form.email ? ` (${form.email})` : ""}.\n\n${form.message}`;
-    const url = `https://wa.me/${person.whatsapp}?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    setTouched({ firstName: true, lastName: true, email: true, message: true });
+    const newErrors = validate(form);
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    // Build the WhatsApp message text
+    const text =
+      `Hello Salma,\n\n` +
+      `Name: ${form.firstName.trim()} ${form.lastName.trim()}\n` +
+      `Email: ${form.email.trim()}\n\n` +
+      `Message:\n${form.message.trim()}\n\n` +
+      `Sent from Salma Shaik's portfolio.`;
+
+    // Safely encode for URL
+    const encoded = encodeURIComponent(text);
+    const waURL = `https://wa.me/${profile.whatsappNumber}?text=${encoded}`;
+
+    // Open WhatsApp in new tab
+    window.open(waURL, '_blank', 'noopener,noreferrer');
+
+    // Show success confirmation
+    setStatus('success');
+    setTimeout(() => {
+      setForm({ firstName: '', lastName: '', email: '', message: '' });
+      setTouched({});
+      setStatus('idle');
+    }, 5000);
   };
 
   return (
-    <section id="contact" className="py-28 relative">
-      <div className="absolute inset-0 grid-bg opacity-30" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#060d1f]/50 to-[#04091a]" />
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-[#0078d4]/25 to-transparent" />
-
-      <div ref={ref} className="relative max-w-7xl mx-auto px-6 lg:px-8">
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.5 }} className="section-label justify-center mb-12">
-          Contact
+    <section
+      id="contact"
+      ref={ref}
+      aria-labelledby="contact-heading"
+      style={{
+        padding: '7rem 0',
+        background: '#F4F5F7',
+      }}
+    >
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 2rem' }}>
+        {/* Section Label */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={isInView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.5 }}
+          style={{ marginBottom: '1rem' }}
+        >
+          <span
+            style={{
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: '#0078D4',
+            }}
+          >
+            07 / CONTACT
+          </span>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay: 0.1 }} className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Let&apos;s build better{" "}
-            <span className="g-text-blue">CRM solutions.</span>
-          </h2>
-          <p className="text-white/45 text-sm max-w-md mx-auto">
-            Open to Dynamics 365 CE, Power Platform, and enterprise CRM opportunities. Reach out anytime.
-          </p>
-        </motion.div>
+        <motion.h2
+          id="contact-heading"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)',
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: '#1A1A2E',
+            marginBottom: '0.75rem',
+            lineHeight: 1.15,
+          }}
+        >
+          Let&apos;s build better<br />CRM solutions.
+        </motion.h2>
 
-        <div className="grid lg:grid-cols-[1fr_1fr] gap-10 items-start max-w-5xl mx-auto">
-          {/* Left: contact info */}
-          <motion.div initial={{ opacity: 0, x: -24 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.6, delay: 0.2 }}>
-            <div className="space-y-4 mb-8">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.2 }}
+          style={{ fontSize: '1rem', color: '#9B9BB4', marginBottom: '3.5rem', maxWidth: '520px' }}
+        >
+          I&apos;m open to enterprise opportunities involving Microsoft Dynamics 365 CE, Power Platform, Dataverse, C#.NET plugins, and full-lifecycle CRM implementations.
+        </motion.p>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.4fr',
+            gap: '3.5rem',
+            alignItems: 'start',
+          }}
+          className="contact-grid"
+        >
+          {/* Left Info Cards */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '2.5rem' }}>
               {[
-                { Icon: Mail, label: "Email", value: person.email, href: `mailto:${person.email}`, color: "#0078d4" },
-                { Icon: Phone, label: "Phone", value: person.phone, href: `tel:${person.phone}`, color: "#742774" },
-                { Icon: MapPin, label: "Location", value: person.location, href: undefined, color: "#7c3aed" },
-              ].map(({ Icon, label, value, href, color }) => (
-                <div key={label} className="glass rounded-xl p-4 flex items-center gap-4 border border-white/6 hover:border-white/12 transition-colors">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${color}15` }}>
-                    <Icon size={17} style={{ color }} />
+                { icon: <Mail size={18} />, label: 'Email', value: profile.email, href: `mailto:${profile.email}` },
+                { icon: <Phone size={18} />, label: 'Phone', value: profile.phoneDisplay, href: `tel:${profile.phone}` },
+                { icon: <MapPin size={18} />, label: 'Location', value: profile.location },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    alignItems: 'flex-start',
+                    background: '#FFFFFF',
+                    borderRadius: '14px',
+                    padding: '1.25rem',
+                    border: '1px solid rgba(26,26,46,0.07)',
+                    boxShadow: '0 2px 8px rgba(26,26,46,0.04)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: 'rgba(0,120,212,0.08)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#0078D4',
+                      flexShrink: 0,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {item.icon}
                   </div>
                   <div>
-                    <div className="text-white/30 text-xs mb-0.5">{label}</div>
-                    {href ? (
-                      <a href={href} className="text-white text-sm font-medium hover:text-[#5ea6f5] transition-colors">{value}</a>
+                    <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#9B9BB4', marginBottom: '0.2rem' }}>
+                      {item.label}
+                    </p>
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        style={{ fontSize: '0.92rem', color: '#1A1A2E', fontWeight: 600, textDecoration: 'none' }}
+                      >
+                        {item.value}
+                      </a>
                     ) : (
-                      <div className="text-white text-sm font-medium">{value}</div>
+                      <p style={{ fontSize: '0.92rem', color: '#1A1A2E', fontWeight: 600 }}>{item.value}</p>
                     )}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Direct buttons */}
-            <div className="flex flex-col gap-3">
-              <a href={`mailto:${person.email}`} className="flex items-center justify-center gap-2 px-5 py-3 bg-[#0078d4] hover:bg-[#106ebe] text-white font-semibold rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-[#0078d4]/25 text-sm">
-                <Mail size={14} /> Email Me
+            {/* Direct Contact Buttons */}
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <a
+                href={`https://wa.me/${profile.whatsappNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Chat on WhatsApp"
+                style={{ ...socialBtn, color: '#16A34A', background: 'rgba(22,163,74,0.08)', borderColor: 'rgba(22,163,74,0.2)' }}
+              >
+                <WhatsAppIcon size={18} />
+                WhatsApp Direct
               </a>
-              <a href={`tel:${person.phone}`} className="flex items-center justify-center gap-2 px-5 py-3 border border-white/12 hover:border-white/25 text-white/70 hover:text-white font-semibold rounded-xl transition-all duration-200 text-sm">
-                <Phone size={14} /> Call Me
+              <a
+                href={`mailto:${profile.email}`}
+                aria-label="Direct Email"
+                style={socialBtn}
+              >
+                <Mail size={18} />
+                Email Direct
               </a>
             </div>
           </motion.div>
 
-          {/* Right: WhatsApp form */}
-          <motion.div initial={{ opacity: 0, x: 24 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.6, delay: 0.25 }}>
-            <form onSubmit={handleWhatsApp} className="glass rounded-2xl p-7 border border-white/8 space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <MessageCircle size={16} className="text-emerald-400" />
-                <span className="text-white/60 text-sm font-medium">Send via WhatsApp</span>
-              </div>
-
-              <div>
-                <label className="block text-white/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Your name"
-                  className="w-full bg-white/4 border border-white/8 focus:border-[#0078d4]/50 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="your@email.com"
-                  className="w-full bg-white/4 border border-white/8 focus:border-[#0078d4]/50 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-white/40 text-xs font-medium mb-1.5 uppercase tracking-wider">Message *</label>
-                <textarea
-                  name="message"
-                  required
-                  rows={4}
-                  value={form.message}
-                  onChange={handleChange}
-                  placeholder="Tell me about your opportunity or project..."
-                  className="w-full bg-white/4 border border-white/8 focus:border-[#0078d4]/50 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 outline-none transition-colors resize-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all duration-200 text-sm hover:-translate-y-0.5 hover:shadow-lg hover:shadow-emerald-500/20"
+          {/* Right Form Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '2.5rem',
+              border: '1px solid rgba(26,26,46,0.07)',
+              boxShadow: '0 4px 20px rgba(26,26,46,0.07)',
+            }}
+          >
+            {status === 'success' ? (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '3rem 1rem',
+                  gap: '1rem',
+                  textAlign: 'center',
+                }}
+                role="status"
+                aria-live="polite"
               >
-                <MessageCircle size={14} />
-                Send via WhatsApp
-                <Send size={13} />
-              </button>
+                <CheckCircle size={48} style={{ color: '#16A34A' }} />
+                <h3 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '1.4rem', fontWeight: 700, color: '#1A1A2E' }}>
+                  WhatsApp Opened!
+                </h3>
+                <p style={{ color: '#5C5C7A', fontSize: '0.9rem' }}>
+                  Your inquiry has been prefilled in WhatsApp. Click <strong>Send</strong> in WhatsApp to deliver it directly to Salma.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} noValidate aria-label="Contact form">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                  <FormField
+                    id="firstName"
+                    label="First Name"
+                    value={form.firstName}
+                    error={errors.firstName}
+                    onChange={(v) => handleChange('firstName', v)}
+                    onBlur={() => handleBlur('firstName')}
+                  />
+                  <FormField
+                    id="lastName"
+                    label="Last Name"
+                    value={form.lastName}
+                    error={errors.lastName}
+                    onChange={(v) => handleChange('lastName', v)}
+                    onBlur={() => handleBlur('lastName')}
+                  />
+                </div>
 
-              <p className="text-white/20 text-xs text-center">Opens WhatsApp with your message pre-filled. You control sending.</p>
-            </form>
+                <FormField
+                  id="email"
+                  label="Email Address"
+                  type="email"
+                  value={form.email}
+                  error={errors.email}
+                  onChange={(v) => handleChange('email', v)}
+                  onBlur={() => handleBlur('email')}
+                  style={{ marginBottom: '1rem' }}
+                />
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label
+                    htmlFor="message"
+                    style={labelStyle}
+                  >
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    value={form.message}
+                    onChange={(e) => handleChange('message', e.target.value)}
+                    onBlur={() => handleBlur('message')}
+                    rows={5}
+                    placeholder="Tell me about your enterprise CRM project or opportunity..."
+                    aria-describedby={errors.message ? 'message-error' : undefined}
+                    aria-invalid={!!errors.message}
+                    style={{
+                      ...inputStyle,
+                      resize: 'vertical',
+                      minHeight: '120px',
+                      border: errors.message ? '1.5px solid #EF4444' : inputStyle.border,
+                    }}
+                  />
+                  {errors.message && (
+                    <p id="message-error" role="alert" style={errorStyle}>
+                      <AlertCircle size={12} style={{ flexShrink: 0 }} />
+                      {errors.message}
+                    </p>
+                  )}
+                </div>
+
+                {status === 'error' && (
+                  <div role="alert" style={{ color: '#EF4444', fontSize: '0.85rem', marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <AlertCircle size={16} />
+                    Something went wrong. Please reach out directly via email or WhatsApp.
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  style={{
+                    width: '100%',
+                    padding: '0.95rem',
+                    background: '#0078D4',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontFamily: 'inherit',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.03em',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 14px rgba(0,120,212,0.25)',
+                  }}
+                >
+                  <Send size={16} />
+                  Send via WhatsApp
+                </button>
+              </form>
+            )}
           </motion.div>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .contact-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2.5rem !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }
+
+function FormField({
+  id,
+  label,
+  value,
+  error,
+  type = 'text',
+  onChange,
+  onBlur,
+  style: extraStyle,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  error?: string;
+  type?: string;
+  onChange: (v: string) => void;
+  onBlur: () => void;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div style={extraStyle}>
+      <label htmlFor={id} style={labelStyle}>
+        {label}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        placeholder={`Your ${label.toLowerCase()}`}
+        aria-describedby={error ? `${id}-error` : undefined}
+        aria-invalid={!!error}
+        style={{
+          ...inputStyle,
+          border: error ? '1.5px solid #EF4444' : inputStyle.border,
+        }}
+      />
+      {error && (
+        <p id={`${id}-error`} role="alert" style={errorStyle}>
+          <AlertCircle size={12} style={{ flexShrink: 0 }} />
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: '#5C5C7A',
+  marginBottom: '0.4rem',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.8rem 1rem',
+  background: '#F4F5F7',
+  border: '1.5px solid transparent',
+  borderRadius: '10px',
+  fontFamily: 'inherit',
+  fontSize: '0.9rem',
+  color: '#1A1A2E',
+  outline: 'none',
+  transition: 'border-color 0.2s',
+};
+
+const errorStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.3rem',
+  fontSize: '0.75rem',
+  color: '#EF4444',
+  marginTop: '0.3rem',
+};
+
+const socialBtn: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  padding: '0.75rem 1.3rem',
+  background: '#FFFFFF',
+  border: '1px solid rgba(26,26,46,0.1)',
+  borderRadius: '12px',
+  fontFamily: 'inherit',
+  fontSize: '0.85rem',
+  fontWeight: 600,
+  color: '#1A1A2E',
+  textDecoration: 'none',
+  transition: 'all 0.2s',
+};
