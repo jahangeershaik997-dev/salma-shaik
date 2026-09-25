@@ -1,150 +1,129 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Mail } from "lucide-react";
 
-const navLinks = [
-  { label: "Home", href: "#home" },
+const links = [
   { label: "About", href: "#about" },
-  { label: "Skills", href: "#skills" },
   { label: "Experience", href: "#experience" },
   { label: "Projects", href: "#projects" },
-  { label: "Impact", href: "#impact" },
+  { label: "Skills", href: "#skills" },
   { label: "Education", href: "#education" },
   { label: "Contact", href: "#contact" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [active, setActive] = useState("home");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("");
 
   useEffect(() => {
     const onScroll = () => {
-      setScrolled(window.scrollY > 20);
-
-      const sections = navLinks.map((l) => l.href.slice(1));
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const el = document.getElementById(sections[i]);
-        if (el && window.scrollY >= el.offsetTop - 120) {
-          setActive(sections[i]);
-          break;
-        }
+      setScrolled(window.scrollY > 30);
+      const ids = links.map((l) => l.href.slice(1));
+      for (let i = ids.length - 1; i >= 0; i--) {
+        const el = document.getElementById(ids[i]);
+        if (el && window.scrollY >= el.offsetTop - 130) { setActive(ids[i]); break; }
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const handleNav = (href: string) => {
-    setMobileOpen(false);
-    const id = href.slice(1);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
+  const go = (href: string) => {
+    setOpen(false);
+    document.getElementById(href.slice(1))?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <motion.nav
-      initial={{ y: -80, opacity: 0 }}
+    <motion.header
+      initial={{ y: -64, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-[#050c1a]/95 backdrop-blur-md border-b border-white/8 shadow-xl shadow-black/20"
-          : "bg-transparent"
+      transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+        scrolled ? "bg-[#04091a]/95 backdrop-blur-xl border-b border-white/6 shadow-xl shadow-black/20" : ""
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <button
-            onClick={() => handleNav("#home")}
-            className="flex items-center gap-2 group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0078d4] to-[#7c3aed] flex items-center justify-center text-white font-bold text-sm">
-              SS
-            </div>
-            <span className="text-white font-semibold text-sm tracking-wide hidden sm:block">
-              Salma Shaik
-            </span>
-          </button>
-
-          {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => handleNav(link.href)}
-                className={`px-3 py-1.5 text-sm rounded-md transition-all duration-200 ${
-                  active === link.href.slice(1)
-                    ? "text-[#0078d4] bg-[#0078d4]/10"
-                    : "text-white/60 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {link.label}
-              </button>
-            ))}
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <button onClick={() => go("#hero")} className="flex items-center gap-3 group">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0078d4] to-[#742774] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[#0078d4]/20">
+            SS
           </div>
+          <div className="hidden sm:block">
+            <div className="text-white text-sm font-semibold leading-tight">Salma Shaik</div>
+            <div className="text-[#5ea6f5]/60 text-[10px] font-medium leading-tight">Power Apps &amp; D365 CE</div>
+          </div>
+        </button>
 
-          {/* CTA */}
-          <div className="hidden lg:flex items-center gap-3">
-            <a
-              href="mailto:sksalma9177@gmail.com"
-              className="px-4 py-2 text-sm font-medium text-white bg-[#0078d4] hover:bg-[#106ebe] rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#0078d4]/25"
+        {/* Desktop nav */}
+        <nav className="hidden lg:flex items-center gap-1">
+          {links.map((l) => (
+            <button
+              key={l.href}
+              onClick={() => go(l.href)}
+              className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                active === l.href.slice(1)
+                  ? "text-[#5ea6f5] bg-[#0078d4]/10"
+                  : "text-white/55 hover:text-white hover:bg-white/5"
+              }`}
             >
-              Hire Me
-            </a>
-          </div>
+              {l.label}
+            </button>
+          ))}
+        </nav>
 
-          {/* Mobile toggle */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden text-white/70 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
-            aria-label="Toggle menu"
+        {/* CTA + mobile toggle */}
+        <div className="flex items-center gap-3">
+          <a
+            href="mailto:salmashaik13579@gmail.com"
+            className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-[#0078d4] hover:bg-[#106ebe] text-white text-sm font-semibold rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#0078d4]/25 hover:-translate-y-px"
           >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            <Mail size={13} />
+            Hire Me
+          </a>
+          <button
+            onClick={() => setOpen(!open)}
+            className="lg:hidden text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
           </button>
         </div>
       </div>
 
       {/* Mobile menu */}
       <AnimatePresence>
-        {mobileOpen && (
+        {open && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden bg-[#050c1a]/98 backdrop-blur-md border-t border-white/8"
+            className="lg:hidden bg-[#04091a]/98 backdrop-blur-xl border-t border-white/6"
           >
             <div className="px-6 py-4 flex flex-col gap-1">
-              {navLinks.map((link) => (
+              {links.map((l) => (
                 <button
-                  key={link.href}
-                  onClick={() => handleNav(link.href)}
-                  className={`text-left px-3 py-2.5 rounded-lg text-sm transition-all ${
-                    active === link.href.slice(1)
-                      ? "text-[#0078d4] bg-[#0078d4]/10"
-                      : "text-white/70 hover:text-white hover:bg-white/5"
+                  key={l.href}
+                  onClick={() => go(l.href)}
+                  className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    active === l.href.slice(1) ? "text-[#5ea6f5] bg-[#0078d4]/10" : "text-white/65 hover:text-white hover:bg-white/5"
                   }`}
                 >
-                  {link.label}
+                  {l.label}
                 </button>
               ))}
               <a
-                href="mailto:sksalma9177@gmail.com"
-                className="mt-2 px-3 py-2.5 text-sm font-medium text-center text-white bg-[#0078d4] rounded-lg"
-                onClick={() => setMobileOpen(false)}
+                href="mailto:salmashaik13579@gmail.com"
+                className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0078d4] text-white text-sm font-semibold rounded-lg"
+                onClick={() => setOpen(false)}
               >
-                Hire Me
+                <Mail size={13} /> Hire Me
               </a>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </motion.header>
   );
 }

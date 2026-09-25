@@ -1,204 +1,94 @@
 "use client";
-
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { projects } from "@/lib/data";
-import { ArrowRight, CheckCircle, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronRight } from "lucide-react";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
+const fadeUp = { hidden: { opacity: 0, y: 28 }, visible: { opacity: 1, y: 0 } };
 
-function FlowDiagram({
-  steps,
-  color,
-}: {
-  steps: string[];
-  color: string;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-2 py-4">
-      {steps.map((step, i) => (
-        <div key={step} className="flex items-center gap-2">
-          <div
-            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white border"
-            style={{
-              borderColor: `${color}40`,
-              background: `${color}15`,
-            }}
-          >
-            {step}
-          </div>
-          {i < steps.length - 1 && (
-            <ChevronRight size={12} className="opacity-30 text-white shrink-0" />
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+type Project = (typeof projects)[number];
 
-type Project = typeof projects[number];
-
-function ProjectCard({ project, index }: { project: Project; index: number }) {
+function ProjectCard({ project }: { project: Project }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
 
-  const isEven = index % 2 === 0;
-
   return (
-    <motion.div
+    <motion.article
       ref={ref}
-      variants={fadeInUp}
-      initial="hidden"
-      animate={inView ? "visible" : "hidden"}
-      transition={{ duration: 0.6, delay: 0.1 }}
-      className="glass-card rounded-2xl overflow-hidden"
-      style={{ borderColor: `${project.color}20` }}
+      initial={{ opacity: 0, y: 36 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.65 }}
+      className="glass rounded-2xl overflow-hidden border border-white/6 hover:border-white/12 transition-colors duration-300 card-hover"
     >
-      {/* Project header bar */}
-      <div
-        className="h-1"
-        style={{ background: `linear-gradient(90deg, ${project.color}, transparent)` }}
-      />
+      {/* Top accent */}
+      <div className="h-[2px]" style={{ background: `linear-gradient(90deg, ${project.color}, transparent)` }} />
 
       <div className="p-8">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-start gap-6 mb-8">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
           <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span
-                className="text-xs font-medium px-2.5 py-1 rounded-full"
-                style={{
-                  color: project.color,
-                  background: `${project.color}18`,
-                  border: `1px solid ${project.color}30`,
-                }}
-              >
+            <div className="flex flex-wrap gap-2 mb-4">
+              <span className="badge" style={{ background: `${project.color}18`, border: `1px solid ${project.color}30`, color: project.color }}>
+                {project.index}
+              </span>
+              <span className="badge" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(232,237,245,0.45)" }}>
                 {project.domain}
               </span>
-              <span className="text-xs text-white/30 border border-white/10 px-2.5 py-1 rounded-full">
-                {project.role}
-              </span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-1">
-              {project.title}
-              {"subtitle" in project && (
-                <span className="text-white/40 font-normal text-lg">
-                  {" "}
-                  — {project.subtitle}
-                </span>
-              )}
-            </h3>
-            <div className="text-white/40 text-sm">
-              Client:{" "}
-              <span className="text-white/60 font-medium">{project.client}</span>
-            </div>
+            <h3 className="text-2xl font-bold text-white mb-1">{project.title}</h3>
+            <p className="text-white/40 text-sm font-medium mb-1">{project.subtitle}</p>
+            <p className="text-white/30 text-xs">Client: <span className="text-white/50 font-medium">{project.client}</span> · {project.role}</p>
           </div>
 
-          {/* Metric(s) */}
-          <div className="flex gap-4 shrink-0">
-            {"metric" in project && project.metric && (
-              <div
-                className="px-5 py-4 rounded-xl text-center"
-                style={{
-                  background: `${project.color}12`,
-                  border: `1px solid ${project.color}30`,
-                }}
-              >
-                <div
-                  className="text-2xl font-bold"
-                  style={{ color: project.color }}
-                >
-                  {project.metric.value}
-                </div>
-                <div className="text-white/50 text-xs mt-1 max-w-[120px]">
-                  {project.metric.label}
-                </div>
-              </div>
-            )}
-            {"metrics" in project && project.metrics &&
-              project.metrics.map((m) => (
-                <div
-                  key={m.label}
-                  className="px-5 py-4 rounded-xl text-center"
-                  style={{
-                    background: `${project.color}12`,
-                    border: `1px solid ${project.color}30`,
-                  }}
-                >
-                  <div
-                    className="text-2xl font-bold"
-                    style={{ color: project.color }}
-                  >
-                    {m.value}
-                  </div>
-                  <div className="text-white/50 text-xs mt-1 max-w-[100px]">
-                    {m.label}
-                  </div>
-                </div>
-              ))}
+          {/* Impact metric */}
+          <div className="shrink-0 text-center px-7 py-5 rounded-xl" style={{ background: `${project.color}10`, border: `1px solid ${project.color}25` }}>
+            <div className="text-3xl font-bold mb-1" style={{ color: project.color }}>{project.impact.value}</div>
+            <div className="text-white/45 text-xs max-w-[140px] leading-tight">{project.impact.label}</div>
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-white/60 text-sm leading-relaxed mb-6">
-          {project.description}
-        </p>
+        <p className="text-white/55 text-sm leading-relaxed mb-6">{project.description}</p>
 
-        {/* Flow diagram */}
+        {/* Flow */}
         <div className="mb-6">
-          <div className="text-white/30 text-xs uppercase tracking-widest mb-2">
-            Process Flow
-          </div>
-          <FlowDiagram steps={project.flow} color={project.color} />
-        </div>
-
-        {/* Tech stack */}
-        <div className="mb-6">
-          <div className="text-white/30 text-xs uppercase tracking-widest mb-3">
-            Technologies
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {project.tech.map((t) => (
-              <span
-                key={t}
-                className="px-2.5 py-1 rounded-md text-xs text-white/60 border border-white/8 bg-white/3"
-              >
-                {t}
-              </span>
+          <div className="text-[10px] text-white/25 uppercase tracking-[0.18em] font-semibold mb-3">Process Flow</div>
+          <div className="flex flex-wrap items-center gap-2">
+            {project.flow.map((step, i) => (
+              <div key={step} className="flex items-center gap-2">
+                <div className="text-xs font-medium px-3 py-1.5 rounded-lg" style={{ background: `${project.color}12`, border: `1px solid ${project.color}25`, color: `${project.color}` }}>
+                  {step}
+                </div>
+                {i < project.flow.length - 1 && <ChevronRight size={12} className="text-white/20" />}
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Highlights */}
-        <div>
-          <div className="text-white/30 text-xs uppercase tracking-widest mb-3">
-            Key Contributions
+        {/* Tech stack */}
+        <div className="mb-6">
+          <div className="text-[10px] text-white/25 uppercase tracking-[0.18em] font-semibold mb-3">Technologies</div>
+          <div className="flex flex-wrap gap-1.5">
+            {project.tech.map((t) => (
+              <span key={t} className="text-xs px-2.5 py-1 rounded-md bg-white/4 border border-white/7 text-white/50">{t}</span>
+            ))}
           </div>
-          <div
-            className={`grid md:grid-cols-2 gap-2 ${
-              isEven ? "" : "lg:grid-flow-row-dense"
-            }`}
-          >
+        </div>
+
+        {/* Key contributions */}
+        <div>
+          <div className="text-[10px] text-white/25 uppercase tracking-[0.18em] font-semibold mb-3">Key Contributions</div>
+          <div className="grid sm:grid-cols-2 gap-2">
             {project.highlights.map((h, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-2 text-sm text-white/55 leading-relaxed"
-              >
-                <CheckCircle
-                  size={13}
-                  className="mt-0.5 shrink-0"
-                  style={{ color: project.color }}
-                />
+              <div key={i} className="flex items-start gap-2 text-xs text-white/55 leading-snug">
+                <CheckCircle2 size={12} className="mt-0.5 shrink-0" style={{ color: project.color }} />
                 {h}
               </div>
             ))}
           </div>
         </div>
       </div>
-    </motion.div>
+    </motion.article>
   );
 }
 
@@ -207,38 +97,22 @@ export default function Projects() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="projects" className="py-24 relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1628]/40 to-[#050c1a]" />
-
+    <section id="projects" className="py-28 relative">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#060d1f]/40 to-transparent" />
       <div className="relative max-w-7xl mx-auto px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          ref={ref}
-          variants={fadeInUp}
-          initial="hidden"
-          animate={inView ? "visible" : "hidden"}
-          transition={{ duration: 0.6 }}
-          className="mb-16"
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-px w-12 section-line" />
-            <span className="text-[#0078d4] text-sm font-medium tracking-widest uppercase">
-              Projects
-            </span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white">
-            Enterprise Project Experience
-          </h2>
-          <p className="mt-3 text-white/50 max-w-xl">
-            Production CRM implementations delivered during tenure at Starlite
-            Infotech.
-          </p>
+
+        <motion.div ref={ref} variants={fadeUp} initial="hidden" animate={inView ? "visible" : "hidden"} transition={{ duration: 0.5 }} className="section-label justify-center mb-12">
+          Projects
         </motion.div>
 
-        {/* Project cards */}
+        <motion.div variants={fadeUp} initial="hidden" animate={inView ? "visible" : "hidden"} transition={{ duration: 0.6, delay: 0.1 }} className="text-center mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white">Enterprise Project Experience</h2>
+          <p className="text-white/45 mt-3 max-w-lg mx-auto text-sm">Production CRM implementations delivered at Starlite Infotech.</p>
+        </motion.div>
+
         <div className="flex flex-col gap-8">
-          {projects.map((project, i) => (
-            <ProjectCard key={project.id} project={project} index={i} />
+          {projects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
           ))}
         </div>
       </div>
